@@ -76,55 +76,6 @@ class AES:
     MixCols = [[2, 3, 1, 1], [1, 2, 3, 1], [1, 1, 2, 3], [3, 1, 1, 2]]
     InvMixCols = [[14, 11, 13, 9], [9, 14, 11, 13], [13, 9, 14, 11], [11, 13, 9, 14]]
     
-    def pad(block, block_length):
-        """
-        Pads a block with padding bytes to make it
-        to the required length, in this case, 128 bits.
-
-        PKCS5 padding
-        
-        Parameters
-        ----------
-
-        block : string
-            Block to be padded written in hexadecimal as string.
-
-        block_length : int
-            Block length in bytes.
-
-        Returns
-        
-        -------
-        block : string
-            Block padded
-        """
-        bytes_to_pad = block_length - len(block) // 2
-
-        for _ in range(bytes_to_pad):
-            block += format(bytes_to_pad, '02x')
-
-        return block
-
-    def unpad(block):
-        """
-        Unpads a block padded with pad() method.
-
-        Parameters
-        ----------
-
-        block : string
-            Block to be unpadded written in hexadecimal as string.
-
-
-        Returns
-        -------
-        
-        block : string
-            Block padded
-        """
-        bytes_to_unpad = int(block[-2:], 16)
-        return block[:-bytes_to_unpad*2]
-    
     def text2matrix(self, text, len=16):
         """
         Transforms a 128/192/256 bit block written in plain text form to the State Matrix form of Integer values.
@@ -421,16 +372,116 @@ class AES:
         
 def TextToHex(text):
     return text.encode().hex() # Convert text to hex
-        
 
-key = "Thats my Kung Fu"
-# print(key.encode().hex())
-aes = AES(TextToHex(key))
-plaintext = "Two One Nine Two"
-# print(plaintext.encode().hex())
-ciphertext = aes.cipher(TextToHex(plaintext))
-print("Ciphertext: ")
-print(ciphertext)
-decoded = aes.decipher(ciphertext)
-print("Decoded Plaintext: ")
-print(bytes.fromhex(decoded).decode())
+def pad(block, block_length):
+    """
+    Pads a block with padding bytes to make it
+    to the required length, in this case, 128 bits.
+
+    PKCS5 padding
+    
+    Parameters
+    ----------
+
+    block : string
+        Block to be padded written in hexadecimal as string.
+
+    block_length : int
+        Block length in bytes.
+
+    Returns
+    
+    -------
+    block : string
+        Block padded
+    """
+    bytes_to_pad = (block_length - len(block)) // 2
+
+    for _ in range(bytes_to_pad):
+        block += format(bytes_to_pad, '02x')
+
+    return block
+
+def unpad(block):
+    """
+    Unpads a block padded with pad() method.
+
+    Parameters
+    ----------
+
+    block : string
+        Block to be unpadded written in hexadecimal as string.
+
+
+    Returns
+    -------
+    
+    block : string
+        Block padded
+    """
+    bytes_to_unpad = int(block[-2:], 16)
+    return block[:-bytes_to_unpad*2]
+
+def key_length_handler(key):
+    # Handling key length
+    if len(key)<32:
+        key = pad(key, 32)
+    elif len(key)>32:
+        key = key[0:32]
+        
+    # print(key)
+    return key
+
+def plaintext_handler(plaintext):
+    plaintext_chunks = []
+    num_chunks = len(plaintext)//32
+
+    for i in range(num_chunks):
+        plaintext_chunks.append(plaintext[i*32:(i+1)*32])
+    if (len(plaintext)%32) !=0:
+        plaintext_chunks.append(pad(plaintext[num_chunks*32:len(plaintext)], 32))
+
+    # print(plaintext_chunks)    
+    return plaintext_chunks
+
+def get_ciphertext(plaintext_chunks):
+    ciphertext = ""
+    for i in range(len(plaintext_chunks)):
+        ciphertext += aes.cipher(plaintext_chunks[i])
+
+    # print(ciphertext)
+    return ciphertext
+
+def get_decoded_plaintext(num_chunks, ciphertext):
+    decoded_plaintext = ""
+    for i in range(num_chunks):
+        decoded_plaintext += aes.decipher(ciphertext[i*32:(i+1)*32])
+        
+    if (len(plaintext)%32) !=0:
+        decoded_plaintext += unpad(aes.decipher(ciphertext[num_chunks*32:len(ciphertext)]))
+            
+    return decoded_plaintext
+
+
+key = input("Key in ASCII: ")
+key = TextToHex(key)
+print("Key in Hex: " + key)
+key = key_length_handler(key)
+aes = AES(key) # Initializing AES
+
+plaintext = input("\nPlain Text in ASCII: ")
+plaintext = TextToHex(plaintext)
+print("Plain Text in Hex: " + plaintext)
+
+ciphertext = get_ciphertext(plaintext_handler(plaintext))
+print("\nCipher Text: ")
+print("In Hex: " + ciphertext)
+# print("In ASCII: " + bytes.fromhex(ciphertext).decode())
+
+decoded_plaintext = get_decoded_plaintext(len(plaintext)//32, ciphertext)
+print("\nDeciphered Text: ")
+print("In Hex: " + decoded_plaintext)
+print("In ASCII: " + bytes.fromhex(decoded_plaintext).decode())
+
+
+
