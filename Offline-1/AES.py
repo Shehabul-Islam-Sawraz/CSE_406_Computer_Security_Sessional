@@ -362,7 +362,7 @@ class AES:
             self.Nr = 12
             self.key = self.text2matrix(key, 24)
         elif mode == 256:
-            self.Nk = 8
+            self.Nw = 8
             self.Nr = 14
             self.key = self.text2matrix(key, 32)
         else:
@@ -422,12 +422,13 @@ def unpad(block):
     bytes_to_unpad = int(block[-2:], 16)
     return block[:-bytes_to_unpad*2]
 
-def key_length_handler(key):
+def key_length_handler(key, key_length):
     # Handling key length
-    if len(key)<32:
-        key = pad(key, 32)
-    elif len(key)>32:
-        key = key[0:32]
+    # Key length = num of hex digits
+    if len(key)<key_length:
+        key = pad(key, key_length)
+    elif len(key)>key_length:
+        key = key[0:key_length]
         
     # print(key)
     return key
@@ -444,7 +445,7 @@ def plaintext_handler(plaintext):
     # print(plaintext_chunks)    
     return plaintext_chunks
 
-def get_ciphertext(plaintext_chunks):
+def get_ciphertext(aes, plaintext_chunks):
     ciphertext = ""
     for i in range(len(plaintext_chunks)):
         ciphertext += aes.cipher(plaintext_chunks[i])
@@ -452,36 +453,33 @@ def get_ciphertext(plaintext_chunks):
     # print(ciphertext)
     return ciphertext
 
-def get_decoded_plaintext(num_chunks, ciphertext):
+def get_decoded_plaintext(aes, num_chunks, ciphertext):
     decoded_plaintext = ""
     for i in range(num_chunks):
         decoded_plaintext += aes.decipher(ciphertext[i*32:(i+1)*32])
         
-    if (len(plaintext)%32) !=0:
+    if (len(ciphertext)//32) !=num_chunks:
         decoded_plaintext += unpad(aes.decipher(ciphertext[num_chunks*32:len(ciphertext)]))
             
     return decoded_plaintext
 
+# key_length = int(input("Length of key in bits: "))
+# key = input("Key in ASCII: ")
+# key = TextToHex(key)
+# print("Key in Hex: " + key)
+# key = key_length_handler(key, key_length//4)
+# aes = AES(key, key_length) # Initializing AES
 
-key = input("Key in ASCII: ")
-key = TextToHex(key)
-print("Key in Hex: " + key)
-key = key_length_handler(key)
-aes = AES(key) # Initializing AES
+# plaintext = input("\nPlain Text in ASCII: ")
+# plaintext = TextToHex(plaintext)
+# print("Plain Text in Hex: " + plaintext)
 
-plaintext = input("\nPlain Text in ASCII: ")
-plaintext = TextToHex(plaintext)
-print("Plain Text in Hex: " + plaintext)
+# ciphertext = get_ciphertext(aes, plaintext_handler(plaintext))
+# print("\nCipher Text: ")
+# print("In Hex: " + ciphertext)
+# # print("In ASCII: " + bytes.fromhex(ciphertext).decode())
 
-ciphertext = get_ciphertext(plaintext_handler(plaintext))
-print("\nCipher Text: ")
-print("In Hex: " + ciphertext)
-# print("In ASCII: " + bytes.fromhex(ciphertext).decode())
-
-decoded_plaintext = get_decoded_plaintext(len(plaintext)//32, ciphertext)
-print("\nDeciphered Text: ")
-print("In Hex: " + decoded_plaintext)
-print("In ASCII: " + bytes.fromhex(decoded_plaintext).decode())
-
-
-
+# decoded_plaintext = get_decoded_plaintext(aes, len(plaintext)//32, ciphertext)
+# print("\nDeciphered Text: ")
+# print("In Hex: " + decoded_plaintext)
+# print("In ASCII: " + bytes.fromhex(decoded_plaintext).decode())
