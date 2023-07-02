@@ -143,21 +143,21 @@ def get_shared_key(a, b, A, B, p):
         print("Shared keys are not equal")
 
 
-prime_bits = int(input("No. of bits of prime no.: "))
+# prime_bits = int(input("No. of bits of prime no.: "))
 
-print("Time taken for calculating prime number p:", end = " ")
-startTime = time.time()
-prime = gen_prime(prime_bits)
-print(time.time()-startTime, end="\n\n")
+# print("Time taken for calculating prime number p:", end = " ")
+# startTime = time.time()
+# prime = gen_prime(prime_bits)
+# print(time.time()-startTime, end="\n\n")
 
-print("Time taken for calculating primitive root g:", end = " ")
-startTime = time.time()
-prim_root = generator(prime)
-print(time.time() - startTime, end="\n\n")
-# print(prim_root)
+# print("Time taken for calculating primitive root g:", end = " ")
+# startTime = time.time()
+# prim_root = generator(prime)
+# print(time.time() - startTime, end="\n\n")
+# # print(prim_root)
 
-a, b = get_private_key(prime_bits)
+# a, b = get_private_key(prime_bits)
 
-A, B = get_public_key(prim_root, a, b, prime)
+# A, B = get_public_key(prim_root, a, b, prime)
 
-get_shared_key(a, b, A, B, prime)
+# get_shared_key(a, b, A, B, prime)

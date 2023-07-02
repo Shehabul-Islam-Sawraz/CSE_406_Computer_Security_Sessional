@@ -1,8 +1,9 @@
-import socket   
+import socket, pickle   
 from Diffie_Hellman import *  
 from AES import *
+from RSA import *
  
-key_length = 128
+key_length = 256
  
 # next create a socket object
 print("This is Alice")
@@ -39,25 +40,51 @@ gen = generator(prime)
 print("Prime: " + str(prime))
 print("Generator: " + str(gen))
 
+# if "rsa key size" in c.recv(1024).decode():
+#     c.send(str(key_length).encode())
+    
+# Request for Bob's public key
+c.send("Send me rsa public key".encode())
+bob_public_key = int(c.recv(1024).decode())
+c.send("Send me rsa n".encode())
+bob_n = int(c.recv(1024).decode())
+
+# Send Bob Alice's prime and generator
 if "prime" in c.recv(1024).decode():
-    c.send(str(prime).encode())
+    c.send(str(encrypt(prime, bob_public_key, bob_n)).encode())
     
 if "generator" in c.recv(1024).decode():
-    c.send(str(gen).encode())
+    c.send(str(encrypt(gen, bob_public_key, bob_n)).encode())
   
 # Sharing public key of Alice
 a = gen_prime((key_length//2)+1)
-print("Private Key: " + str(a))
+print("Alice Private Key: " + str(a))
 A = fast_mod_exp(gen, a, prime)
-print("Public Key: " + str(A))
+print("Alice Public Key: " + str(A))
 
-if "key" in c.recv(1024).decode():
-    c.send(str(A).encode())
+# Sending Bob Alice's DH public key
+if "DH public key" in c.recv(1024).decode():
+    c.send(str(encrypt(A, bob_public_key, bob_n)).encode())
     
+
+#initialize Alice RSA
+rsa = RSA(key_length)    
+alice_public_key, alice_n = rsa.generate_public_key()
+alice_private_key = rsa.generate_private_key(alice_public_key)
+
+# Send Bob my(Alice) public key
+if "rsa public key" in c.recv(1024).decode():
+    c.send(str(alice_public_key).encode())
+if "rsa n" in c.recv(1024).decode():    
+    c.send(str(alice_n).encode())
+
+c.settimeout(50)
+
 # Signal BOB to send BOB's public key
-c.send("Send me public key".encode())
+c.send("Send me DH public key".encode())
 
 B = int(c.recv(1024).decode())
+B = decrypt(B, alice_private_key, alice_n)
 print("BOB pubic key received: " + str(B))
 
 
@@ -74,8 +101,9 @@ key = key_length_handler(key, key_length//4)
 aes = AES(key, key_length)
 
 ciphertext = get_ciphertext(aes, plaintext_handler(plaintext))
-
+print("Ciphertext: " , ciphertext)
 c.send(ciphertext.encode())
+c.settimeout(500)
 c.send(str(len(plaintext)//32).encode())
 
 decoded_plaintext = c.recv(1024).decode()

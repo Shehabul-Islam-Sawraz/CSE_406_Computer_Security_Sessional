@@ -1,4 +1,5 @@
 from BitVector import *
+import time
 
 class AES:
     """
@@ -468,18 +469,25 @@ def get_decoded_plaintext(aes, num_chunks, ciphertext):
 # key = TextToHex(key)
 # print("Key in Hex: " + key)
 # key = key_length_handler(key, key_length//4)
+
+# startTime = time.time()
 # aes = AES(key, key_length) # Initializing AES
+# print(f'Key scheduling: {time.time() - startTime} seconds')
 
 # plaintext = input("\nPlain Text in ASCII: ")
 # plaintext = TextToHex(plaintext)
 # print("Plain Text in Hex: " + plaintext)
 
+# startTime = time.time()
 # ciphertext = get_ciphertext(aes, plaintext_handler(plaintext))
 # print("\nCipher Text: ")
 # print("In Hex: " + ciphertext)
 # # print("In ASCII: " + bytes.fromhex(ciphertext).decode())
+# print(f'Encryption time: {time.time() - startTime} seconds')
 
+# startTime = time.time()
 # decoded_plaintext = get_decoded_plaintext(aes, len(plaintext)//32, ciphertext)
 # print("\nDeciphered Text: ")
 # print("In Hex: " + decoded_plaintext)
 # print("In ASCII: " + bytes.fromhex(decoded_plaintext).decode())
+# print(f'Decryption time: {time.time() - startTime} seconds')
