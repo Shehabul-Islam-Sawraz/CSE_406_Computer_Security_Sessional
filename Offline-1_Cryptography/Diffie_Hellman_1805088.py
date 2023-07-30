@@ -1,7 +1,6 @@
 import random
 die = random.SystemRandom() # A single dice.
 import time
-import math
 
 def fast_mod_exp(b, exp, m):
     res = 1

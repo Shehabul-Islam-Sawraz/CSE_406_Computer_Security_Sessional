@@ -1,9 +1,9 @@
-import socket, pickle   
-from Diffie_Hellman import *  
-from AES import *
-from RSA import *
+import socket   
+from Diffie_Hellman_1805088 import *  
+from AES_1805088 import *
+from RSA_1805088 import *
  
-key_length = 256
+key_length = 192
  
 # next create a socket object
 print("This is Alice")
@@ -26,9 +26,6 @@ print ("socket binded to %s" %(port))
 s.listen(5)    
 print ("socket is listening")           
  
-# a forever loop until we interrupt it or
-# an error occurs
- 
 # Establish connection with client.
 c, addr = s.accept()    
 print ('Got connection from', addr )
@@ -39,9 +36,6 @@ prime = gen_prime(key_length)
 gen = generator(prime)
 print("Prime: " + str(prime))
 print("Generator: " + str(gen))
-
-# if "rsa key size" in c.recv(1024).decode():
-#     c.send(str(key_length).encode())
     
 # Request for Bob's public key
 c.send("Send me rsa public key".encode())
@@ -66,7 +60,6 @@ print("Alice Public Key: " + str(A))
 if "DH public key" in c.recv(1024).decode():
     c.send(str(encrypt(A, bob_public_key, bob_n)).encode())
     
-
 #initialize Alice RSA
 rsa = RSA(key_length)    
 alice_public_key, alice_n = rsa.generate_public_key()
@@ -92,7 +85,12 @@ print("BOB pubic key received: " + str(B))
 shared_key = fast_mod_exp(B, a, prime)
 print("Shared key: " + str(shared_key))
 
-plaintext = "One Two Three Four Five Six Seven Eight"
+plaintext = "In the vast expanse of the universe, countless galaxies dance through the cosmic ballet, each with their own unique story waiting to be discovered. Stars shimmer and galaxies collide, creating a spectacle of celestial wonders that captivates the imagination. From the fiery birth of stars in stellar nurseries to the awe-inspiring death of massive supernovae, the universe is a canvas of boundless creativity.\
+On our pale blue dot called Earth, the stage is set for an intricate tapestry of life. From the towering mountains to the deepest ocean trenches, from lush rainforests to arid deserts, our planet is a mosaic of diverse ecosystems, teeming with an array of flora and fauna. From microscopic organisms to majestic creatures, every species has its role in the intricate web of life.\
+Humans, too, are part of this grand tapestry. With our capacity for thought, creativity, and innovation, we have shaped the world around us. From the ancient wonders of the world to the modern marvels of technology, our ingenuity knows no bounds. Through art, literature, and music, we express the depths of our emotions and connect with others on a profound level.\
+Yet, amidst the beauty and complexity, the world can be a place of challenge and uncertainty. We grapple with questions of existence, search for meaning, and navigate the ever-changing tides of life. We face adversity and triumph over it, striving for progress and a better future. The human spirit is resilient, and we find strength in unity, compassion, and the pursuit of knowledge.\
+As we journey through life, we are guided by our dreams and aspirations. We build relationships, forge bonds of love and friendship, and find solace in the warmth of human connection. We explore the depths of our own hearts and minds, seeking self-discovery and personal growth."
+
 plaintext = TextToHex(plaintext)
 
 key = TextToHex(str(shared_key))
@@ -103,10 +101,10 @@ aes = AES(key, key_length)
 ciphertext = get_ciphertext(aes, plaintext_handler(plaintext))
 print("Ciphertext: " , ciphertext)
 c.send(ciphertext.encode())
-c.settimeout(500)
+c.settimeout(1500)
 c.send(str(len(plaintext)//32).encode())
 
-decoded_plaintext = c.recv(1024).decode()
+decoded_plaintext = c.recv(4096).decode()
 # print(decoded_plaintext)
 
 if TextToHex(decoded_plaintext) == plaintext:

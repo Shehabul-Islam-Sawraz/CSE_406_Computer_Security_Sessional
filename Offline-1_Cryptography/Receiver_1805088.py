@@ -1,10 +1,10 @@
 # Import socket module
-import socket, pickle    
-from Diffie_Hellman import *
-from AES import *
-from RSA import *
+import socket    
+from Diffie_Hellman_1805088 import *
+from AES_1805088 import *
+from RSA_1805088 import *
 
-key_length = 256     
+key_length = 192     
  
 print("This is Bob")
 # Create a socket object
@@ -25,6 +25,7 @@ bob_private_key = rsa.generate_private_key(bob_public_key)
 # Send Alice my(Bob) public key
 if "rsa public key" in s.recv(1024).decode():
     s.send(str(bob_public_key).encode())
+    s.settimeout(20)
 if "rsa n" in s.recv(1024).decode():
     s.send(str(bob_n).encode())
     
@@ -70,7 +71,7 @@ key = key_length_handler(key, key_length//4)
 
 aes = AES(key, key_length)
 
-ciphertext = s.recv(1024).decode()
+ciphertext = s.recv(4096).decode()
 print("Ciphertext: " , ciphertext)
 # s.settimeout(100)
 num_chunks = int(s.recv(1024).decode())
